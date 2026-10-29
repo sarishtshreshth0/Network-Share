@@ -35,8 +35,13 @@ def handle_client(client_obj , addr):
         finally:
             client_obj.close()
             print("Client socket closed")
+try:
+    while True:
+        client_obj , addr = ob.accept()
+        t1 = threading.Thread(target = handle_client  , args = (client_obj , addr))
+        t1.start()
+except KeyboardInterrupt:
+    print("\n Server Shutting down")
 
-while True:
-    client_obj , addr = ob.accept()
-    t1 = threading.Thread(target = handle_client  , args = (client_obj , addr))
-    t1.start()
+finally:
+    ob.close()
