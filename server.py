@@ -10,12 +10,20 @@ clients = {}
 print("Server is running on port 2301")
 
 def send_msg_client(clients):
-    reply = input("Reply to client --> ").split('|')
-    name , message = reply[0] , reply[-1]
-    if name in clients:
-        clients[name].sendall(message.encode("utf-8"))
-    else:
-        print(name , ' is not connected till now')
+    try:
+        while True:
+            reply = input("Reply to client --> ").split('|')
+            name , message = reply[0] , reply[-1]
+            if name == 'broadcast':
+                for name in clients:
+                    clients[name].sendall(message.encode("utf-8"))    
+            elif name in clients:
+                clients[name].sendall(message.encode("utf-8"))
+            else:
+                print(name , ' is not connected till now')
+    except OSError as e:
+        print('Socket error:' , e)
+    
 
 def handle_client(client_obj , addr):
     print("Connected with:", addr)
