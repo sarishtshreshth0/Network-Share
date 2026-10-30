@@ -1,4 +1,3 @@
-
 import socket
 import threading 
 
@@ -9,32 +8,34 @@ ob.listen(4)
 
 
 print("Server is running on port 2301")
+
+count = 0
+def recv_msg_client(client_obj , addr):
+    reply = input("Reply to client --> ")
+    client_obj.sendall(reply.encode("utf-8"))
 def handle_client(client_obj , addr):
-        print("Connected with:", addr)
+    global count
+    print("Connected with:", addr)
+    try:
+        while True:
+            msg = client_obj.recv(1024)
+            count +=1
+            if not msg:
+                print("Client disconnected:", addr)
+                break
 
-        try:
-            while True:
-                msg = client_obj.recv(1024)
+            print("Client:", msg.decode("utf-8"))
+            thread_recv = threading.Thread(target = recv_msg_client , args = (client_obj , addr))
+            thread_recv.start()
+            if count >=1000:
+                print('infinit loop')
+                break
+    except OSError as e:
+        print("Socket error:", e)
 
-                if not msg:
-                    print("Client disconnected:", addr)
-                    break
-
-                print("Client:", msg.decode("utf-8"))
-
-                reply = input("Reply to client --> ")
-
-                if reply == "no":
-                    break
-
-                client_obj.sendall(reply.encode("utf-8"))
-
-        except OSError as e:
-            print("Socket error:", e)
-
-        finally:
-            client_obj.close()
-            print("Client socket closed")
+    finally:
+        client_obj.close()
+        print("Client socket closed")
 try:
     while True:
         client_obj , addr = ob.accept()
