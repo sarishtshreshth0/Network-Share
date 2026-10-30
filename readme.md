@@ -7,17 +7,10 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.8%2B-blue?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/status-active-brightgreen" alt="Status">
-  <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="License">
 </p>
 
 ---
 
-## ✨ Features
-
-- 🖥️ One server handling multiple clients
-- 🔌 Socket-based communication
-- 📁 Easy to run and extend
-- *(add your own features here)*
 
 ##  Project Structure
 
@@ -38,13 +31,13 @@ network-share/
 ### Installation
 
 ```bash
-git clone https://github.com/your-username/network-share.git
+git clone https://github.com/sarishtshreshth0/Network-Share.git
 cd network-share
 ```
 
 ### Usage
 
-> ⚠️ **Order matters:** always start the server first.
+>  **Order matters:** always start the server first.
 
 **1. Start the server**
 
@@ -63,13 +56,6 @@ python client.py
 ```bash
 python client2.py
 ```
-
-
-
-## 🛠️ Troubleshooting
-
-- **Connection refused?** Make sure `server.py` is running first.
-- **Port already in use?** Change the `PORT` value in all three files.
 
 
 
