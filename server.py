@@ -9,9 +9,13 @@ ob.listen(4)
 clients = {}
 print("Server is running on port 2301")
 
-def send_msg_client(client_obj , addr):
-    reply = input("Reply to client --> ")
-    client_obj.sendall(reply.encode("utf-8"))
+def send_msg_client(clients):
+    reply = input("Reply to client --> ").split('|')
+    name , message = reply[0] , reply[-1]
+    if name in clients:
+        clients[name].sendall(message.encode("utf-8"))
+    else:
+        print(name , ' is not connected till now')
 
 def handle_client(client_obj , addr):
     print("Connected with:", addr)
@@ -33,12 +37,13 @@ def handle_client(client_obj , addr):
 try:
     while True:
         client_obj , addr = ob.accept()
-        print(client_obj  , addr)
+        name = client_obj.recv(1024).decode('utf-8')
+        clients[name] = client_obj
         t1 = threading.Thread(target = handle_client  , args = (client_obj , addr))
-        thread_send = threading.Thread(target = send_msg_client , args = (client_obj , addr))
+        thread_send = threading.Thread(target = send_msg_client , args = (clients,))
         t1.start()
         thread_send.start()
-        
+        print(clients)
 
 except KeyboardInterrupt:
     print("\n Server Shutting down")

@@ -3,7 +3,7 @@ import threading
 
 ob =socket.socket()
 ob.connect(('localhost' , 2301))
-
+ob.sendall('sarisht'.encode('utf-8'))
 def handle_server_send_msg(ob):
     try:
         while True:
