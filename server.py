@@ -14,7 +14,13 @@ def send_msg_client(clients):
         while True:
             reply = input("Reply to client --> ").split('|')
             name , message = reply[0] , reply[-1]
-            if name == 'broadcast':
+            if name == 'disconnect':
+                if message in clients:
+                    clients[message].close()
+                    del clients[message]
+                    print(message , ' is forcefully removed')
+                    
+            elif name == 'broadcast':
                 for name in clients:
                     clients[name].sendall(message.encode("utf-8"))    
             elif name in clients:

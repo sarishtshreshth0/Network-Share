@@ -22,8 +22,8 @@ def handle_server_recv_msg(ob):
                 print('user -- disconnected')
                 break
             print(reply.decode('utf-8'))
-    except KeyboardInterrupt:
-        print('\n Shutting down')
+    except Exception as e:
+        print('Error : ' , e)
     
 
 t1 = threading.Thread(target =handle_server_send_msg , args = (ob,))
