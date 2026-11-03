@@ -1,6 +1,6 @@
 import socket
 import threading 
-
+import struct
 ob = socket.socket()
 ob.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 ob.bind(("localhost", 2301))
@@ -10,6 +10,25 @@ clients = {}
 clients_lock = threading.Lock()
 print("Server is running on port 2301")
 
+
+def recv_exact(sock , size):
+    data = bytearray()
+    while len(data) < size:
+        chunk = sock.recv(size - len(data))
+        if not chunk:
+            return None
+        data.extend(chunk)
+    return bytes(data)
+
+
+def recieve_message(sock):
+    header = recv_exact(sock , 4)
+    if header is None:
+        return None
+    message_length = struct.unpack('!I' , header)[0]
+    message = recv_exact(sock, message_length)
+    return message
+
 def send_msg_client(clients):
     try:
         while True:
@@ -18,10 +37,11 @@ def send_msg_client(clients):
             names_list = []
             with clients_lock:
                 if whom == 'disconnect':
-                        if message in clients:
-                            clients[message].close()
-                            clients = clients.pop(message , None)
-                            print(message , ' is forcefully removed')
+                    if message in clients:
+                        save = clients[message]
+                        clients.pop(message )
+                        print(message , ' is forcefully removed')
+                        save.close()
                 elif whom == 'broadcast':
                     names_list = list(clients.values())    
                 elif whom in clients:
@@ -29,8 +49,11 @@ def send_msg_client(clients):
                 else:
                     print(whom , ' is not connected till now')
             for name_ref in names_list:
-                name_ref.sendall(message.encode("utf-8"))
-            
+                try:
+                    formed_msg = struct.pack('!I' , len(message)) + message.encode('utf-8')
+                    name_ref.sendall(formed_msg)
+                except Exception as e:
+                    print('Error ' , e)
     except OSError as e:
         print('Socket error:' , e)
     
@@ -39,11 +62,10 @@ def handle_client(client_obj , addr, name , clients):
     print("Connected with:", addr)
     try:
         while True:
-            msg = client_obj.recv(1024)
+            msg = recieve_message(client_obj)
             if not msg:
                 print("Client disconnected:", addr)
                 break
-
             print("Client:", msg.decode("utf-8"))
             
     except OSError as e:
@@ -51,18 +73,24 @@ def handle_client(client_obj , addr, name , clients):
 
     finally:
         with clients_lock:
-            if name in clients:
-                clients = clients.pop(name , None)
+            if clients.get(name) is client_obj: 
+                clients.pop(name , None)
         client_obj.close()
         print("Client socket closed")
+
+
+
 thread_send = threading.Thread(target = send_msg_client , args = (clients,))
 thread_send.start()
 try:
+    max_size = 1024*1024
     while True:
         client_obj , addr = ob.accept()
-        name = client_obj.recv(1024).decode('utf-8')
+        print(client_obj)
+        name = recieve_message(client_obj)
+        print(name)
         with clients_lock:
-            clients[name] = client_obj
+            clients[name.decode('utf-8')] = client_obj
         t1 = threading.Thread(target = handle_client  , args = (client_obj , addr , name ,clients))
         t1.start()
         print(clients)
