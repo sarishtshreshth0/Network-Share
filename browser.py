@@ -6,6 +6,20 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 client.connect(("127.0.0.1" , 5000))
 
+
+class HTTPResponse:
+    def __init__(self , status , headers , body):
+        self.status = status
+        self.headers = headers
+        self.body = body
+    def show_all(self):
+        print('Status' , self.status)
+        print('Headers' , self.headers)
+        print('Body' ,  self.body)
+    def get_header(self , name):
+        print(self.headers.get(name.lower()))
+
+
 def recv_exact(sock , size ):
     data = bytearray()
 
@@ -76,21 +90,20 @@ def recv_headers(sock ):
 
 response  = recv_headers(client)
 
-headers , body = response.split(b"\r\n\r\n"  ,1)
+raw_headers , body = response.split(b"\r\n\r\n"  ,1)
+def parse_response(headers , body):
+    ex_headers = headers.split(b'\r\n')
+    Status = ex_headers[0].decode()
+    dict_headers = {}
+    for i in ex_headers[1:]:
+        key, value = i.split(b':', 1)
+        dict_headers[key.decode().strip().lower()] = value.decode().strip()
+    result = read_http_body(client, dict_headers)
+    all_response = HTTPResponse(Status , dict_headers , result.decode())
+    return all_response
 
-ex_headers = headers.split(b'\r\n')
-print('Status:' , ex_headers[0].decode())
-print('\nHeaders')
-dict_headers = {}
-for i in ex_headers[1:]:
-    key, value = i.split(b':', 1)
-    dict_headers[key.decode().strip().lower()] = value.decode().strip()
-print(dict_headers)
-
-print('\nBody')
-
-
-result = read_http_body(client, dict_headers)
-
-print(result.decode())
+    
+all_response = parse_response(raw_headers , body)
+all_response.show_all()
+all_response.get_header('content-length')
 client.close()
